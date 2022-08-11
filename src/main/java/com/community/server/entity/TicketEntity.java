@@ -27,7 +27,8 @@ public class TicketEntity {
 
     private String uuid = UUID.randomUUID().toString();
     private Long userId;
-    private Long correct;
+    private Long correct = 0L;
+    private Long attempts = 1L;
     @NotNull
     private String ticket;
 

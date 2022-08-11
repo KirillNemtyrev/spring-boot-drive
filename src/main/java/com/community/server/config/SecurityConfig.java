@@ -84,7 +84,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter{
                 .permitAll()
                 .antMatchers("/api/auth/**")
                 .permitAll()
-                .antMatchers("/resources/avatar/**")
+                .antMatchers("/resources/**")
                 .permitAll()
                 .anyRequest()
                 .authenticated();

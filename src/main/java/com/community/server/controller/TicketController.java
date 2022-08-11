@@ -1,6 +1,7 @@
 package com.community.server.controller;
 
 import com.community.server.body.TicketEndBody;
+import com.community.server.body.TicketRetryBody;
 import com.community.server.dto.TicketDTO;
 import com.community.server.dto.TicketEndDTO;
 import com.community.server.dto.TicketResultDTO;
@@ -29,6 +30,7 @@ import javax.validation.Valid;
 import java.io.File;
 import java.io.IOException;
 import java.util.Date;
+import java.util.List;
 import java.util.Random;
 import java.util.UUID;
 
@@ -86,6 +88,7 @@ public class TicketController {
                 ticketEntity.getUuid(),
                 ticketEntity.getTicketDateStart(),
                 ticketEntity.getTicketDateEnd(),
+                ticketEntity.getAttempts(),
                 ticketMapper.toDTO(ticket.getTicket())
         );
     }
@@ -130,18 +133,48 @@ public class TicketController {
                 ticketGsonWithAnswers);
     }
 
-
-    @GetMapping()
-    public Object getTicket(HttpServletRequest httpServletRequest) throws IOException {
+    @PutMapping("/retry")
+    public Object retryTicket(HttpServletRequest httpServletRequest, @Valid @RequestBody TicketRetryBody ticketRetryBody) throws IOException {
 
         String jwt = jwtAuthenticationFilter.getJwtFromRequest(httpServletRequest);
         Long userId = tokenProvider.getUserIdFromJWT(jwt);
 
-        if(!userRepository.existsById(userId))
+        if(!userRepository.existsById(userId)) {
             return new UsernameNotFoundException("User is not found!");
+        }
 
-        File[] tickets = new File("tickets").listFiles();
-        return new TicketUtil().getTicket(tickets[new Random().nextInt(tickets.length)]);
+        TicketEntity ticketEntity = ticketRepository.findByUuid(ticketRetryBody.getUuid()).orElse(null);
+        if(ticketEntity == null){
+            return new ResponseEntity("Ticket is not found!", HttpStatus.BAD_REQUEST);
+        }
+
+        ticketEntity.setAttempts(ticketEntity.getAttempts() + 1);
+        ticketEntity.setTicketDateStart(new Date());
+        ticketEntity.setTicketDateEnd(new Date(new Date().getTime() + 40 * 60 * 1000));
+        ticketEntity.setAnswers(null);
+
+        Ticket ticket = new TicketUtil().getTicket(new File("tickets/" + ticketEntity.getTicket()));
+
+        ticketRepository.save(ticketEntity);
+        return new TicketResultDTO(
+                ticketEntity.getUuid(),
+                ticketEntity.getTicketDateStart(),
+                ticketEntity.getTicketDateEnd(),
+                ticketEntity.getAttempts(),
+                ticketMapper.toDTO(ticket.getTicket())
+        );
     }
 
+    @GetMapping("/history")
+    public Object getHistory(HttpServletRequest httpServletRequest){
+
+        String jwt = jwtAuthenticationFilter.getJwtFromRequest(httpServletRequest);
+        Long userId = tokenProvider.getUserIdFromJWT(jwt);
+
+        if(!userRepository.existsById(userId)) {
+            return new UsernameNotFoundException("User is not found!");
+        }
+
+        return ticketRepository.findByUserId(userId);
+    }
 }

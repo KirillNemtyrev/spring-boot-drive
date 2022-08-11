@@ -14,6 +14,7 @@ public class TicketResultDTO {
     private String uuid;
     private Date dateStart;
     private Date dateEnd;
+    private Long attempts;
 
     private TicketDTO[] ticket;
 }
