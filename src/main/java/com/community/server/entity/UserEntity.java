@@ -56,6 +56,11 @@ public class UserEntity {
 
     @LastModifiedDate
     private Date lastModifyDate = new Date();
+    private Date subscribeEnd = null;
+
+    @Size(max = 6)
+    private String recoveryCode;
+    private Date recoveryDate;
 
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(name = "user_roles",

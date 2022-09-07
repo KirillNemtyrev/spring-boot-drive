@@ -8,6 +8,7 @@ import com.community.server.entity.UserEntity;
 import com.community.server.exception.AppException;
 import com.community.server.repository.RoleRepository;
 import com.community.server.repository.UserRepository;
+import com.community.server.security.JwtAuthenticationFilter;
 import com.community.server.security.JwtAuthenticationResponse;
 import com.community.server.security.JwtTokenProvider;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,6 +43,9 @@ public class AuthController {
 
     @Autowired
     public PasswordEncoder passwordEncoder;
+
+    @Autowired
+    public JwtAuthenticationFilter jwtAuthenticationFilter;
 
     @Autowired
     public JwtTokenProvider tokenProvider;
@@ -83,5 +87,19 @@ public class AuthController {
 
         String jwt = tokenProvider.generateToken(authentication);
         return ResponseEntity.ok(new JwtAuthenticationResponse(jwt));
+    }
+
+    @PostMapping("/token")
+    public ResponseEntity<?> checkToken(HttpServletRequest httpServletRequest){
+
+        String jwt = jwtAuthenticationFilter.getJwtFromRequest(httpServletRequest);
+        Long userId = tokenProvider.getUserIdFromJWT(jwt);
+
+        if(!userRepository.existsById(userId)){
+            return new ResponseEntity("User is not found!", HttpStatus.NON_AUTHORITATIVE_INFORMATION);
+        }
+
+        return new ResponseEntity("Token is up to date", HttpStatus.OK);
+
     }
 }

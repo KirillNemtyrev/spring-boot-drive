@@ -1,5 +1,6 @@
 package com.community.server.controller;
 
+import com.community.server.body.SettingsBody;
 import com.community.server.entity.UserEntity;
 import com.community.server.repository.UserRepository;
 import com.community.server.security.JwtAuthenticationFilter;
@@ -11,13 +12,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.validation.Valid;
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -42,14 +41,15 @@ public class AvatarController {
     @Autowired
     private JwtTokenProvider tokenProvider;
 
-    @PutMapping()
-    public ResponseEntity<?> changeAvatar(HttpServletRequest request, @RequestParam MultipartFile file) throws IOException {
-        if(file.isEmpty())
+    @PostMapping()
+    public ResponseEntity<?> changeAvatar(HttpServletRequest request, @Valid @RequestBody SettingsBody settingsBody) throws IOException {
+
+        if(settingsBody.getFile().isEmpty())
             return new ResponseEntity("File is empty!", HttpStatus.BAD_REQUEST);
 
-        String suffix = file.getOriginalFilename().substring(file.getOriginalFilename().lastIndexOf(".") + 1);
-        if(!suffix.equalsIgnoreCase("jpg") && !suffix.equalsIgnoreCase("jpeg") && !suffix.equalsIgnoreCase("png"))
-            return new ResponseEntity("The file is not a photo! Need png, jpeg, jpg format!", HttpStatus.BAD_REQUEST);
+        String suffix = settingsBody.getFile().getOriginalFilename().substring(settingsBody.getFile().getOriginalFilename().lastIndexOf(".") + 1);
+        if(!suffix.equalsIgnoreCase("jpg") && !suffix.equalsIgnoreCase("png"))
+            return new ResponseEntity("The file is not a photo! Need png, jpg format!", HttpStatus.BAD_REQUEST);
 
         String jwt = jwtAuthenticationFilter.getJwtFromRequest(request);
         Long userId = tokenProvider.getUserIdFromJWT(jwt);
@@ -60,13 +60,13 @@ public class AvatarController {
         File directory = new File("resources");
         if(directory.mkdir()) logger.info("The avatar directory has been created!");
 
-        String fileName = UUID.randomUUID().toString() + "." + suffix;
+        String fileName = UUID.randomUUID() + "." + suffix;
         String pathToFile = "resources/"+ fileName;
         File photo = new File(pathToFile);
 
         if(photo.createNewFile()) logger.info("The avatar file has been created!");
 
-        byte[] bytes = file.getBytes();
+        byte[] bytes = settingsBody.getFile().getBytes();
         BufferedOutputStream stream = new BufferedOutputStream(new FileOutputStream(pathToFile));
         stream.write(bytes);
         stream.close();

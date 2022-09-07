@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.Date;
 import java.util.List;
 
 @RestController
@@ -50,6 +51,13 @@ public class StatisticController {
         statisticDTO.setUsername(userEntity.getUsername());
         statisticDTO.setPhoto(userEntity.getFileNameAvatar());
 
+        if(userEntity.getSubscribeEnd() != null && !userEntity.getSubscribeEnd().before(new Date())) {
+
+            statisticDTO.setSubscribeEnd(userEntity.getSubscribeEnd());
+            statisticDTO.setSubscribe(true);
+
+        }
+
         TicketStatisticDTO ticketStatisticDTO = new TicketStatisticDTO();
 
         List<TicketEntity> ticketEntity = ticketRepository.findByUserId(userId);
@@ -69,7 +77,7 @@ public class StatisticController {
 
 
         if(ticketStatisticDTO.getResolved() + ticketStatisticDTO.getUnresolved() != 0)
-            ticketStatisticDTO.setProbability((float) ticketStatisticDTO.getResolved() / (float) (ticketStatisticDTO.getResolved() + ticketStatisticDTO.getUnresolved()) * 100);
+            ticketStatisticDTO.setProbability((float) ticketStatisticDTO.getResolved() / (float) (ticketStatisticDTO.getTotal()) * 100);
 
         statisticDTO.setTicket(ticketStatisticDTO);
         return statisticDTO;
