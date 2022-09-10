@@ -1,13 +1,20 @@
 package com.community.server.body;
 
 import lombok.Getter;
-import org.springframework.web.multipart.MultipartFile;
+
+import javax.validation.constraints.Email;
 
 @Getter
 public class SettingsBody {
 
     private String username;
     private String name;
-    private MultipartFile file;
+
+    private String code;
+    @Email
+    private String newEmail;
+
+    private String oldPassword;
+    private String newPassword;
 
 }

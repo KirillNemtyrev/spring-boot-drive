@@ -42,12 +42,12 @@ public class AvatarController {
     private JwtTokenProvider tokenProvider;
 
     @PostMapping()
-    public ResponseEntity<?> changeAvatar(HttpServletRequest request, @Valid @RequestBody SettingsBody settingsBody) throws IOException {
+    public ResponseEntity<?> changeAvatar(HttpServletRequest request, @RequestParam MultipartFile file) throws IOException {
 
-        if(settingsBody.getFile().isEmpty())
+        if(file == null)
             return new ResponseEntity("File is empty!", HttpStatus.BAD_REQUEST);
 
-        String suffix = settingsBody.getFile().getOriginalFilename().substring(settingsBody.getFile().getOriginalFilename().lastIndexOf(".") + 1);
+        String suffix = file.getOriginalFilename().substring(file.getOriginalFilename().lastIndexOf(".") + 1);
         if(!suffix.equalsIgnoreCase("jpg") && !suffix.equalsIgnoreCase("png"))
             return new ResponseEntity("The file is not a photo! Need png, jpg format!", HttpStatus.BAD_REQUEST);
 
@@ -66,7 +66,7 @@ public class AvatarController {
 
         if(photo.createNewFile()) logger.info("The avatar file has been created!");
 
-        byte[] bytes = settingsBody.getFile().getBytes();
+        byte[] bytes = file.getBytes();
         BufferedOutputStream stream = new BufferedOutputStream(new FileOutputStream(pathToFile));
         stream.write(bytes);
         stream.close();

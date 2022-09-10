@@ -62,6 +62,10 @@ public class UserEntity {
     private String recoveryCode;
     private Date recoveryDate;
 
+    @Size(max = 6)
+    private String emailChangeCode;
+    private Date emailChangeDate;
+
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(name = "user_roles",
             joinColumns = @JoinColumn(name = "user_id"),
