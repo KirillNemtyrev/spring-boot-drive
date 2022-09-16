@@ -78,6 +78,7 @@ public class TicketController {
 
         File[] tickets = new File("tickets").listFiles();
         File fileTicket = tickets[new Random().nextInt(tickets.length)];
+        System.out.println(fileTicket);
         Ticket ticket = new TicketUtil().getTicket(fileTicket);
 
         ticketEntity = new TicketEntity(userId, fileTicket.getName());
